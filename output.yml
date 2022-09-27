@@ -1,0 +1,59 @@
+Parameters:
+  NameofService:
+    Description: "Name of Service This Stack is Used For."
+    Type: String
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.medium
+    Description: Enter t2.micro, m1.small, or m1.large. Default is t2.micro.
+  KeyName:
+    Description: Name of EC2 Login Key
+    Type: AWS::EC2::KeyPair::KeyName
+Mappings:
+  AmiRegionMap:
+    us-east-1:
+      AMI: "ami-026b57f3c383c2eec"
+    us-east-2:
+      AMI: "ami-0f924dc71d44d23e2"
+Resources:
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      InstanceType: !Ref InstanceTypeParameter
+      KeyName: !Ref KeyName
+      ImageId: !FindInMap
+        - AmiRegionMap
+        - !Ref AWS::Region
+        - AMI
+      Tags:
+        - Key: "Name"
+          Value: !Ref NameofService
+      SecurityGroups:
+        - !Ref StackSG
+
+  StackSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow ssh & http from MyIP
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+
+Outputs:
+  PrintSomeInfo:
+    Value: !GetAtt
+      - MyInstance
+      - PublicDnsName
+
+
+"wget https://www.tooplate.com/zip-templates/2121_wave_cafe.zip && unzip https://www.tooplate.com/zip-templates/2121_wave_cafe.zip cp -r 2121_wave_cafe/* /var/ww/html/"
